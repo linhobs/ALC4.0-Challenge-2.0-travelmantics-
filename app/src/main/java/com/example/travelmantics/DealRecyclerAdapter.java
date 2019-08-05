@@ -14,6 +14,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.squareup.picasso.Picasso;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ public class DealRecyclerAdapter extends RecyclerView.Adapter<DealRecyclerAdapte
     private DatabaseReference mDatabaseReference;
     //Listener to liten to database changes
     private ChildEventListener mChildlistener;
+    private ImageView imageDeal;
    // private int mPosition;
 
     //constructor
@@ -94,8 +96,19 @@ public class DealRecyclerAdapter extends RecyclerView.Adapter<DealRecyclerAdapte
     holder.tvTitle.setText(deal.getTitle());
     holder.tvDescription.setText(deal.getDescription());
     holder.tvPrice.setText(deal.getPrice());
+        showImage(deal.getImageUrl());
     //Handle Item Click (Send intent for display
 
+    }
+
+    private void showImage(String url) {
+        if (url != null && url.isEmpty()==false) {
+            Picasso.get()
+                    .load(url)
+                    .resize(160, 160)
+                    .centerCrop()
+                    .into(imageDeal);
+        }
     }
 
     @Override

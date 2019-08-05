@@ -1,20 +1,34 @@
 package com.example.travelmantics;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 public class DealActivity extends AppCompatActivity {
-//lets handle firebase
+    private static final int PICTURE_RESULTS = 42;
+    //lets handle firebase
     //database instance
     private FirebaseDatabase mFirebaseDatabase;
     //define database reference(generic)
@@ -23,6 +37,8 @@ public class DealActivity extends AppCompatActivity {
     private EditText textPrice;
     private EditText textDescription;
     private TravelDeal deal;
+    private ImageView imageView;
+    private Button btnImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,10 +47,23 @@ public class DealActivity extends AppCompatActivity {
         //getInstance of firebase
        // FirebaseUtil.openFbReference("traveldeals",this);
         mFirebaseDatabase = FirebaseUtil.mFirebaseDatabase;
-        mDatabaseReference=FirebaseUtil.mDatabaseReference;
+         mDatabaseReference=FirebaseUtil.mDatabaseReference;
         textTitle = (EditText)findViewById(R.id.text_title);
         textPrice = (EditText)findViewById(R.id.text_price);
         textDescription = (EditText)findViewById(R.id.text_description);
+        imageView = (ImageView) findViewById(R.id.image);
+        btnImage = (Button)findViewById(R.id.btn_image);
+        btnImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //an implicit intent to get the image.
+                Intent intent=new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("image/jpeg");
+                intent.putExtra(Intent.EXTRA_LOCAL_ONLY,true);
+                //start activity for results to get results
+                startActivityForResult(intent.createChooser(intent,"Insert Picture"),PICTURE_RESULTS);
+            }
+        });
         //getExtra. work Modular Next time.
         Intent intent=getIntent();
         //get deal passed by intent. else create a new deal
@@ -49,6 +78,43 @@ public class DealActivity extends AppCompatActivity {
         textTitle.setText(deal.getTitle());
         textPrice.setText(deal.getPrice());
         textDescription.setText(deal.getDescription());
+        showImage(deal.getImageUrl());
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==PICTURE_RESULTS &&resultCode==RESULT_OK){
+             //UPLOAD TO Firebase.
+            Uri imageUri=data.getData();
+          final   StorageReference reference=FirebaseUtil.mStorageReference
+                    .child(imageUri.getLastPathSegment());
+           reference.putFile(imageUri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+               @Override
+               public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                   String url=reference.getDownloadUrl().toString();
+                   String pictureName = taskSnapshot.getStorage().getPath();
+                   deal.setImageUrl(url);
+                 deal.setImageName(pictureName);
+                   Log.d("Url: ", url);
+                   Log.d("Name", pictureName);
+                   showImage(url);
+               }
+           });
+
+        }
+    }
+
+    private void showImage(String url) {
+        if (url != null && url.isEmpty() == false) {
+            int width = Resources.getSystem().getDisplayMetrics().widthPixels;
+            Picasso.get()
+                    .load(url)
+                    .resize(width, width*2/3)
+                    .centerCrop()
+                    .into(imageView);
+        }
 
     }
 
@@ -116,7 +182,7 @@ public class DealActivity extends AppCompatActivity {
             mDatabaseReference.child(deal.getId()).setValue(deal);
         }
 
-        
+
     }
     //delete deal
     private void deleteDeal(){
@@ -126,6 +192,22 @@ public class DealActivity extends AppCompatActivity {
         }
         else{
             mDatabaseReference.child(deal.getId()).removeValue();
+            Log.d("image name",deal.getImageName());
+            //delete picture.
+            if(deal.getImageName()!=null&&deal.getImageName().isEmpty()==false){
+                StorageReference picRef = FirebaseUtil.mStorage.getReference().child(deal.getImageName());
+                picRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d("Delete Image", "Image Successfully Deleted");
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d("Delete Image", e.getMessage());
+                    }
+                });
+            }
         }
     }
     private void backtoList(){
@@ -136,6 +218,8 @@ public class DealActivity extends AppCompatActivity {
         textPrice.setEnabled(isEnabled);
         textTitle.setEnabled(isEnabled);
         textDescription.setEnabled(isEnabled);
+        btnImage.setEnabled(isEnabled);
+
 
     }
 }
