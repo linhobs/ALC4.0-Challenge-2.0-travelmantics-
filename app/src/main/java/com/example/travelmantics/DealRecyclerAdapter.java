@@ -35,7 +35,7 @@ public class DealRecyclerAdapter extends RecyclerView.Adapter<DealRecyclerAdapte
     //constructor
     public DealRecyclerAdapter(){
         //initialize database
-        FirebaseUtil.openFbReference("traveldeals");
+        //FirebaseUtil.openFbReference("traveldeals",ListActivity.class);
         mFirebaseDatabase = FirebaseUtil.mFirebaseDatabase;
         mDatabaseReference=FirebaseUtil.mDatabaseReference;
         mChildlistener=new ChildEventListener() {
