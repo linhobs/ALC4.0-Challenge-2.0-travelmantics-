@@ -31,7 +31,7 @@ public class DealRecyclerAdapter extends RecyclerView.Adapter<DealRecyclerAdapte
     private DatabaseReference mDatabaseReference;
     //Listener to liten to database changes
     private ChildEventListener mChildlistener;
-    private ImageView imageDeal;
+    private ImageView imageView;
    // private int mPosition;
 
     //constructor
@@ -96,6 +96,7 @@ public class DealRecyclerAdapter extends RecyclerView.Adapter<DealRecyclerAdapte
     holder.tvTitle.setText(deal.getTitle());
     holder.tvDescription.setText(deal.getDescription());
     holder.tvPrice.setText(deal.getPrice());
+//    Log.d("image url",deal.getImageUrl());
         showImage(deal.getImageUrl());
     //Handle Item Click (Send intent for display
 
@@ -107,7 +108,7 @@ public class DealRecyclerAdapter extends RecyclerView.Adapter<DealRecyclerAdapte
                     .load(url)
                     .resize(160, 160)
                     .centerCrop()
-                    .into(imageDeal);
+                    .into(imageView);
         }
     }
 
@@ -121,14 +122,14 @@ public class DealRecyclerAdapter extends RecyclerView.Adapter<DealRecyclerAdapte
         TextView tvTitle;
         private final TextView tvDescription;
         private final TextView tvPrice;
-        private final ImageView imgDeal;
+
 
         public viewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle=itemView.findViewById(R.id.tv_title);
             tvDescription = (TextView)itemView.findViewById(R.id.tv_description);
             tvPrice = (TextView)itemView.findViewById(R.id.tv_price);
-            imgDeal = (ImageView)itemView.findViewById(R.id.img_deal );
+            imageView = (ImageView)itemView.findViewById(R.id.img_deal );
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

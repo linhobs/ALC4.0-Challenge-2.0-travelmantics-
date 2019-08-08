@@ -48,6 +48,7 @@ public class ListActivity extends AppCompatActivity {
         MenuItem insertMenu=menu.findItem(R.id.insert_menu);
         if(FirebaseUtil.isAdmin==true){
             insertMenu.setVisible(true);
+            return true;
         }
         else{
             insertMenu.setVisible(false);
@@ -139,7 +140,9 @@ public class ListActivity extends AppCompatActivity {
         dealRecyclerview.setAdapter(adapter);
         dealRecyclerview.setLayoutManager(mLayoutManager);
         FirebaseUtil.attachListener();
+        showMenu();
     }
+
     public void showMenu(){
         invalidateOptionsMenu();
     }

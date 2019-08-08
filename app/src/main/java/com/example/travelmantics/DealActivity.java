@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.StorageReference;
@@ -93,13 +94,21 @@ public class DealActivity extends AppCompatActivity {
            reference.putFile(imageUri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
                @Override
                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                   String url=reference.getDownloadUrl().toString();
+                   Task<Uri> url=reference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                       @Override
+                       public void onSuccess(Uri uri) {
+                           Log.d("url", "onSuccess: uri= "+ uri.toString());
+                           String url= uri.toString();
+                           deal.setImageUrl(url);
+                           showImage(url);
+                       }
+                   });
                    String pictureName = taskSnapshot.getStorage().getPath();
-                   deal.setImageUrl(url);
-                 deal.setImageName(pictureName);
-                   Log.d("Url: ", url);
-                   Log.d("Name", pictureName);
-                   showImage(url);
+
+                   deal.setImageName(pictureName);
+                  // Log.d("Url: ", url);
+                  // Log.d("Name", pictureName);
+
                }
            });
 
@@ -192,7 +201,7 @@ public class DealActivity extends AppCompatActivity {
         }
         else{
             mDatabaseReference.child(deal.getId()).removeValue();
-            Log.d("image name",deal.getImageName());
+           // Log.d("image name",deal.getImageName());
             //delete picture.
             if(deal.getImageName()!=null&&deal.getImageName().isEmpty()==false){
                 StorageReference picRef = FirebaseUtil.mStorage.getReference().child(deal.getImageName());
